@@ -6,11 +6,16 @@
  * 없으면 로컬 설정 사용 (개발 환경)
  */
 
-define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_PORT', getenv('DB_PORT') ?: '3306');
-define('DB_NAME', getenv('DB_NAME') ?: 'new_year_goals');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-define('DB_PASS', getenv('DB_PASS') ?: '');
+// 환경 변수 가져오기 (getenv, $_ENV, $_SERVER 순서로 시도)
+$getEnv = function($key, $default = '') {
+    return getenv($key) ?: ($_ENV[$key] ?? ($_SERVER[$key] ?? $default));
+};
+
+define('DB_HOST', $getEnv('DB_HOST', 'localhost'));
+define('DB_PORT', $getEnv('DB_PORT', '3306'));
+define('DB_NAME', $getEnv('DB_NAME', 'new_year_goals'));
+define('DB_USER', $getEnv('DB_USER', 'root'));
+define('DB_PASS', $getEnv('DB_PASS', ''));
 define('DB_CHARSET', 'utf8mb4');
 
 /**
