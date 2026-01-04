@@ -2,6 +2,7 @@
 /**
  * Railway 환경 변수 디버깅 페이지
  * 배포 후 이 파일은 삭제할 것
+ * Updated: 2026-01-04
  */
 
 header('Content-Type: text/plain; charset=utf-8');
