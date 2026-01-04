@@ -325,8 +325,8 @@ MIT License
 ## 개발자
 
 - 개발 기간: 2026년 1월
-- 개발자: [Your Name]
-- 문의: [Your Email]
+- 개발자: 김기찬   
+- 문의: kimkichan1225@gmail.com
 
 ---
 
