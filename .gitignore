@@ -13,9 +13,6 @@ desktop.ini
 vendor/
 composer.lock
 
-# 환경 설정 (보안상 제외)
-config/database.php
-
 # 로그 파일
 *.log
 
