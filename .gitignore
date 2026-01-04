@@ -1,0 +1,33 @@
+# OS 관련
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE 관련
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# PHP 관련
+vendor/
+composer.lock
+
+# 환경 설정 (보안상 제외)
+config/database.php
+
+# 로그 파일
+*.log
+
+# 임시 파일
+*.tmp
+*.bak
+*.swp
+*~
+
+# 캐시
+cache/
+temp/
+
+# 업로드 파일 (실제 서비스 시)
+uploads/
