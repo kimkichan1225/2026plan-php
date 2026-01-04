@@ -73,5 +73,6 @@ CREATE TABLE IF NOT EXISTS reflections (
 ) ENGINE=InnoDB COMMENT='월별 회고';
 
 -- 샘플 데이터
+-- password_hash for 'test1234'
 INSERT IGNORE INTO users (id, name, email, password_hash) VALUES
-(1, '테스트 사용자', 'test@test.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+(1, '테스트 사용자', 'test@test.com', '$2y$10$N9qo8uLOickgx2ZMRZoMye1IVI.9J6WqDqYZ3FqkMqZpVHXVKv6mO');
