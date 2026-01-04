@@ -1,4 +1,5 @@
 # PHP 8.2 CLI
+# Force rebuild - 2026-01-04
 FROM php:8.2-cli
 
 # Install PDO MySQL extension
