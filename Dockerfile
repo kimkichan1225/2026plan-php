@@ -10,9 +10,11 @@ COPY . /app
 # Set working directory
 WORKDIR /app
 
+# Make start script executable
+RUN chmod +x /app/start.sh
+
 # Expose port (Railway will set $PORT)
 EXPOSE 8080
 
-# Use shell form to allow environment variable expansion
-# Railway provides PORT environment variable
-CMD /bin/sh -c "php -S 0.0.0.0:${PORT:-8080}"
+# Use ENTRYPOINT to ensure start script runs
+ENTRYPOINT ["/bin/sh", "/app/start.sh"]
