@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="test-account-section">
                 <p class="test-account-label">테스트 계정으로 빠른 체험</p>
                 <form method="POST" action="login.php">
-                    <input type="hidden" name="email" value="test@test.com">
+                    <input type="hidden" name="email" value="test1@test.com">
                     <input type="hidden" name="password" value="test1234">
                     <button type="submit" class="btn btn-secondary btn-block btn-test">
                         테스트 계정으로 로그인

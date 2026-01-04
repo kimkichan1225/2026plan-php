@@ -243,7 +243,7 @@ php -S localhost:8000
 
 ### 4. 테스트 계정
 ```
-이메일: test@test.com
+이메일: test1@test.com
 비밀번호: test1234
 ```
 
