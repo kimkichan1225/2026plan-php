@@ -3,6 +3,8 @@ require_once __DIR__ . '/includes/session.php';
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/models/Goal.php';
 require_once __DIR__ . '/models/GoalPlan.php';
+require_once __DIR__ . '/models/GoalLike.php';
+require_once __DIR__ . '/models/GoalComment.php';
 
 requireLogin();
 
@@ -78,6 +80,99 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             exit;
         }
 
+        if ($_POST['action'] === 'like_toggle') {
+            $likeGoalId = (int) ($_POST['goal_id'] ?? 0);
+
+            if (!$likeGoalId) {
+                echo json_encode(['success' => false, 'error' => 'Invalid goal ID']);
+                exit;
+            }
+
+            // 공개 목표인지 확인
+            $likeGoal = $goalModel->findById($likeGoalId);
+            if (!$likeGoal || ($likeGoal['visibility'] !== 'public' && $likeGoal['user_id'] !== $userId)) {
+                echo json_encode(['success' => false, 'error' => 'Goal not accessible']);
+                exit;
+            }
+
+            $likeModel = new GoalLike();
+            $result = $likeModel->toggle($likeGoalId, $userId);
+
+            if ($result) {
+                $likeCount = $likeModel->getLikeCount($likeGoalId);
+                $isLiked = $likeModel->isLiked($likeGoalId, $userId);
+
+                echo json_encode([
+                    'success' => true,
+                    'like_count' => $likeCount,
+                    'is_liked' => $isLiked
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Failed to toggle like']);
+            }
+            exit;
+        }
+
+        if ($_POST['action'] === 'add_comment') {
+            $commentGoalId = (int) ($_POST['goal_id'] ?? 0);
+            $content = trim($_POST['content'] ?? '');
+
+            if (!$commentGoalId) {
+                echo json_encode(['success' => false, 'error' => 'Invalid goal ID']);
+                exit;
+            }
+
+            if (empty($content)) {
+                echo json_encode(['success' => false, 'error' => 'Comment content is required']);
+                exit;
+            }
+
+            // 공개 목표인지 확인
+            $commentGoal = $goalModel->findById($commentGoalId);
+            if (!$commentGoal || ($commentGoal['visibility'] !== 'public' && $commentGoal['user_id'] !== $userId)) {
+                echo json_encode(['success' => false, 'error' => 'Goal not accessible']);
+                exit;
+            }
+
+            $commentModel = new GoalComment();
+            $commentId = $commentModel->create($commentGoalId, $userId, $content);
+
+            if ($commentId) {
+                echo json_encode([
+                    'success' => true,
+                    'comment_id' => $commentId,
+                    'user_name' => $userName,
+                    'content' => $content,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Failed to add comment']);
+            }
+            exit;
+        }
+
+        if ($_POST['action'] === 'delete_comment') {
+            $commentId = (int) ($_POST['comment_id'] ?? 0);
+
+            if (!$commentId) {
+                echo json_encode(['success' => false, 'error' => 'Invalid comment ID']);
+                exit;
+            }
+
+            $commentModel = new GoalComment();
+            $comment = $commentModel->findById($commentId);
+
+            // 권한 확인: 댓글 작성자만 삭제 가능
+            if (!$comment || $comment['user_id'] !== $userId) {
+                echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+                exit;
+            }
+
+            $result = $commentModel->delete($commentId);
+            echo json_encode(['success' => $result]);
+            exit;
+        }
+
         echo json_encode(['success' => false, 'error' => 'Invalid action']);
         exit;
 
@@ -117,6 +212,14 @@ if ($isPublic && !$isOwner) {
 }
 
 $planModel = new GoalPlan();
+
+// 좋아요/댓글 데이터 로드
+$likeModel = new GoalLike();
+$commentModel = new GoalComment();
+
+$isLiked = $likeModel->isLiked($goalId, $userId);
+$likeCount = $likeModel->getLikeCount($goalId);
+$comments = $commentModel->findByGoal($goalId, 'latest');
 
 $quarterNames = [1 => '1분기 (1~3월)', 2 => '2분기 (4~6월)', 3 => '3분기 (7~9월)', 4 => '4분기 (10~12월)'];
 ?>
@@ -251,6 +354,62 @@ $quarterNames = [1 => '1분기 (1~3월)', 2 => '2분기 (4~6월)', 3 => '3분기
                 <?php endforeach; ?>
             </div>
 
+            <!-- 좋아요 및 댓글 섹션 (공개 목표만) -->
+            <?php if ($isPublic): ?>
+                <!-- 좋아요 버튼 -->
+                <div class="goal-interactions">
+                    <button
+                        id="likeButton"
+                        class="btn-like <?= $isLiked ? 'liked' : '' ?>"
+                        data-goal-id="<?= $goalId ?>"
+                    >
+                        <span class="like-icon"><?= $isLiked ? '❤️' : '🤍' ?></span>
+                        <span class="like-text"><?= $isLiked ? '좋아요 취소' : '좋아요' ?></span>
+                        <span class="like-count"><?= number_format($likeCount) ?></span>
+                    </button>
+                </div>
+
+                <!-- 댓글 섹션 -->
+                <div class="comments-section">
+                    <h3 class="comments-title">
+                        💬 댓글 <span class="comment-count"><?= count($comments) ?></span>
+                    </h3>
+
+                    <!-- 댓글 작성 폼 -->
+                    <div class="comment-form">
+                        <textarea
+                            id="commentContent"
+                            placeholder="응원의 댓글을 남겨보세요..."
+                            rows="3"
+                        ></textarea>
+                        <button id="submitComment" class="btn btn-primary">댓글 작성</button>
+                    </div>
+
+                    <!-- 댓글 목록 -->
+                    <div id="commentsList" class="comments-list">
+                        <?php if (empty($comments)): ?>
+                            <p class="no-comments">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>
+                        <?php else: ?>
+                            <?php foreach ($comments as $comment): ?>
+                                <div class="comment-item" data-comment-id="<?= $comment['id'] ?>">
+                                    <div class="comment-header">
+                                        <span class="comment-author">👤 <?= e($comment['user_name']) ?></span>
+                                        <span class="comment-date"><?= formatDate($comment['created_at'], 'Y-m-d H:i') ?></span>
+                                    </div>
+                                    <div class="comment-content"><?= nl2br(e($comment['content'])) ?></div>
+                                    <?php if ($comment['user_id'] === $userId): ?>
+                                        <button
+                                            class="btn-delete-comment"
+                                            data-comment-id="<?= $comment['id'] ?>"
+                                        >삭제</button>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <div class="goal-actions">
                 <?php if ($isOwner): ?>
                     <a href="goal_list.php" class="btn btn-secondary">목록으로</a>
@@ -301,5 +460,158 @@ $quarterNames = [1 => '1분기 (1~3월)', 2 => '2분기 (4~6월)', 3 => '3분기
     </div>
 
     <script src="assets/js/main.js"></script>
+    <script>
+        // 좋아요 버튼 클릭 처리
+        const likeButton = document.getElementById('likeButton');
+        if (likeButton) {
+            likeButton.addEventListener('click', async function() {
+                const goalId = this.dataset.goalId;
+
+                try {
+                    const response = await fetch('goal_detail.php?id=' + goalId, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'action=like_toggle&goal_id=' + goalId
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        const likeIcon = this.querySelector('.like-icon');
+                        const likeText = this.querySelector('.like-text');
+                        const likeCount = this.querySelector('.like-count');
+
+                        if (data.is_liked) {
+                            this.classList.add('liked');
+                            likeIcon.textContent = '❤️';
+                            likeText.textContent = '좋아요 취소';
+                        } else {
+                            this.classList.remove('liked');
+                            likeIcon.textContent = '🤍';
+                            likeText.textContent = '좋아요';
+                        }
+
+                        likeCount.textContent = data.like_count.toLocaleString();
+                    } else {
+                        alert('좋아요 처리 중 오류가 발생했습니다: ' + (data.error || ''));
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('서버 오류가 발생했습니다.');
+                }
+            });
+        }
+
+        // 댓글 작성
+        const submitComment = document.getElementById('submitComment');
+        const commentContent = document.getElementById('commentContent');
+        const commentsList = document.getElementById('commentsList');
+
+        if (submitComment) {
+            submitComment.addEventListener('click', async function() {
+                const content = commentContent.value.trim();
+                const goalId = <?= $goalId ?>;
+
+                if (!content) {
+                    alert('댓글 내용을 입력해주세요.');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('goal_detail.php?id=' + goalId, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'action=add_comment&goal_id=' + goalId + '&content=' + encodeURIComponent(content)
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // 댓글 추가
+                        const noComments = commentsList.querySelector('.no-comments');
+                        if (noComments) {
+                            noComments.remove();
+                        }
+
+                        const commentHtml = `
+                            <div class="comment-item" data-comment-id="${data.comment_id}">
+                                <div class="comment-header">
+                                    <span class="comment-author">👤 ${data.user_name}</span>
+                                    <span class="comment-date">${data.created_at}</span>
+                                </div>
+                                <div class="comment-content">${data.content.replace(/\n/g, '<br>')}</div>
+                                <button class="btn-delete-comment" data-comment-id="${data.comment_id}">삭제</button>
+                            </div>
+                        `;
+
+                        commentsList.insertAdjacentHTML('afterbegin', commentHtml);
+
+                        // 댓글 수 업데이트
+                        const commentCount = document.querySelector('.comment-count');
+                        commentCount.textContent = parseInt(commentCount.textContent) + 1;
+
+                        // 입력창 초기화
+                        commentContent.value = '';
+                    } else {
+                        alert('댓글 작성 중 오류가 발생했습니다: ' + (data.error || ''));
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('서버 오류가 발생했습니다.');
+                }
+            });
+        }
+
+        // 댓글 삭제 (이벤트 위임)
+        if (commentsList) {
+            commentsList.addEventListener('click', async function(e) {
+                if (e.target.classList.contains('btn-delete-comment')) {
+                    if (!confirm('정말 댓글을 삭제하시겠습니까?')) {
+                        return;
+                    }
+
+                    const commentId = e.target.dataset.commentId;
+                    const goalId = <?= $goalId ?>;
+
+                    try {
+                        const response = await fetch('goal_detail.php?id=' + goalId, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: 'action=delete_comment&comment_id=' + commentId
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // 댓글 제거
+                            const commentItem = e.target.closest('.comment-item');
+                            commentItem.remove();
+
+                            // 댓글 수 업데이트
+                            const commentCount = document.querySelector('.comment-count');
+                            const newCount = parseInt(commentCount.textContent) - 1;
+                            commentCount.textContent = newCount;
+
+                            // 댓글이 없으면 메시지 표시
+                            if (newCount === 0) {
+                                commentsList.innerHTML = '<p class="no-comments">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</p>';
+                            }
+                        } else {
+                            alert('댓글 삭제 중 오류가 발생했습니다: ' + (data.error || ''));
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('서버 오류가 발생했습니다.');
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 </html>
