@@ -10,6 +10,84 @@ $userId = getCurrentUserId();
 $userName = getCurrentUserName();
 $goalId = (int) ($_GET['id'] ?? 0);
 
+// 계획 업데이트 처리 (AJAX) - 반드시 다른 출력 전에 처리
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    // 이전 출력 버퍼 클리어
+    if (ob_get_level()) {
+        ob_clean();
+    }
+
+    header('Content-Type: application/json');
+
+    try {
+        $planModel = new GoalPlan();
+        $goalModel = new Goal();
+
+        if ($_POST['action'] === 'update_plan') {
+            $planId = (int) ($_POST['plan_id'] ?? 0);
+            $planTitle = trim($_POST['plan_title'] ?? '');
+            $planDescription = trim($_POST['plan_description'] ?? '');
+
+            if (!$planId) {
+                echo json_encode(['success' => false, 'error' => 'Invalid plan ID']);
+                exit;
+            }
+
+            $result = $planModel->update($planId, [
+                'plan_title' => $planTitle,
+                'plan_description' => $planDescription,
+            ]);
+
+            echo json_encode(['success' => $result]);
+            exit;
+        }
+
+        if ($_POST['action'] === 'toggle_complete') {
+            $planId = (int) ($_POST['plan_id'] ?? 0);
+
+            if (!$planId) {
+                echo json_encode(['success' => false, 'error' => 'Invalid plan ID']);
+                exit;
+            }
+
+            // plan에서 goal_id를 가져와서 권한 확인
+            $plan = $planModel->findById($planId);
+
+            if (!$plan) {
+                echo json_encode(['success' => false, 'error' => 'Plan not found']);
+                exit;
+            }
+
+            $planGoalId = $plan['goal_id'];
+            $planGoal = $goalModel->findById($planGoalId);
+
+            // 권한 확인: 해당 목표의 소유자인지 확인
+            if (!$planGoal || $planGoal['user_id'] !== $userId) {
+                echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+                exit;
+            }
+
+            $result = $planModel->toggleComplete($planId);
+
+            if ($result) {
+                // 진행률 재계산
+                $goalModel->updateProgress($planGoalId);
+            }
+
+            echo json_encode(['success' => $result]);
+            exit;
+        }
+
+        echo json_encode(['success' => false, 'error' => 'Invalid action']);
+        exit;
+
+    } catch (Exception $e) {
+        error_log('Error in goal_detail.php: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'error' => 'Server error: ' . $e->getMessage()]);
+        exit;
+    }
+}
+
 if (!$goalId) {
     redirect('goal_list.php');
 }
@@ -23,38 +101,6 @@ if (!$goal || $goal['user_id'] !== $userId) {
 }
 
 $planModel = new GoalPlan();
-
-// 계획 업데이트 처리 (AJAX)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    header('Content-Type: application/json');
-
-    if ($_POST['action'] === 'update_plan') {
-        $planId = (int) $_POST['plan_id'];
-        $planTitle = trim($_POST['plan_title'] ?? '');
-        $planDescription = trim($_POST['plan_description'] ?? '');
-
-        $result = $planModel->update($planId, [
-            'plan_title' => $planTitle,
-            'plan_description' => $planDescription,
-        ]);
-
-        echo json_encode(['success' => $result]);
-        exit;
-    }
-
-    if ($_POST['action'] === 'toggle_complete') {
-        $planId = (int) $_POST['plan_id'];
-        $result = $planModel->toggleComplete($planId);
-
-        if ($result) {
-            // 진행률 재계산
-            $goalModel->updateProgress($goalId);
-        }
-
-        echo json_encode(['success' => $result]);
-        exit;
-    }
-}
 
 $quarterNames = [1 => '1분기 (1~3월)', 2 => '2분기 (4~6월)', 3 => '3분기 (7~9월)', 4 => '4분기 (10~12월)'];
 ?>
