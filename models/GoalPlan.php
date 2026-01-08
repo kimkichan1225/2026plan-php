@@ -71,8 +71,15 @@ class GoalPlan
 
         foreach ($allowedFields as $field) {
             if (isset($data[$field])) {
+                $value = $data[$field];
+
+                // is_completed는 명시적으로 정수로 변환
+                if ($field === 'is_completed') {
+                    $value = (int) (bool) $value;
+                }
+
                 $fields[] = "$field = :$field";
-                $params[$field] = $data[$field];
+                $params[$field] = $value;
             }
         }
 
