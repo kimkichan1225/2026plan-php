@@ -16,13 +16,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $category = $_POST['category'] ?? 'other';
+    $priority = $_POST['priority'] ?? 'medium';
     $year = (int) ($_POST['year'] ?? $currentYear);
 
     if (empty($title)) {
         $error = '목표 제목을 입력해주세요.';
     } else {
         try {
-            $goalId = $goalModel->create($userId, $year, $title, $description, $category);
+            $goalId = $goalModel->create($userId, $year, $title, $description, $category, $priority);
             redirect("goal_detail.php?id=$goalId");
         } catch (Exception $e) {
             $error = '목표 생성 중 오류가 발생했습니다.';
@@ -43,6 +44,7 @@ $showCreateForm = isset($_GET['action']) && $_GET['action'] === 'create';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>목표 관리 - 신년계획 관리</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/theme.js"></script>
 </head>
 <body>
     <div class="container">
@@ -54,6 +56,9 @@ $showCreateForm = isset($_GET['action']) && $_GET['action'] === 'create';
                     <a href="dashboard.php" class="nav-link">대시보드</a>
                     <a href="goal_list.php" class="nav-link active">목표 관리</a>
                     <a href="reflection.php" class="nav-link">회고</a>
+                    <button id="themeToggle" class="theme-toggle" aria-label="테마 전환">
+                        <span class="icon">☀️</span>
+                    </button>
                     <span class="user-info">안녕하세요, <?= e($userName) ?>님</span>
                     <a href="logout.php" class="btn btn-sm btn-secondary">로그아웃</a>
                 </nav>
@@ -120,6 +125,15 @@ $showCreateForm = isset($_GET['action']) && $_GET['action'] === 'create';
                                 </div>
 
                                 <div class="form-group">
+                                    <label for="priority">우선순위</label>
+                                    <select id="priority" name="priority">
+                                        <option value="high">🔥 높음</option>
+                                        <option value="medium" selected>➡️ 보통</option>
+                                        <option value="low">⬇️ 낮음</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
                                     <label for="year">연도</label>
                                     <input
                                         type="number"
@@ -153,6 +167,9 @@ $showCreateForm = isset($_GET['action']) && $_GET['action'] === 'create';
                         <?php foreach ($goals as $goal): ?>
                             <div class="goal-card">
                                 <div class="goal-card-header">
+                                    <?php if (isset($goal['priority'])): ?>
+                                        <?= getPriorityBadge($goal['priority']) ?>
+                                    <?php endif; ?>
                                     <span class="badge badge-category"><?= e(getCategoryName($goal['category'])) ?></span>
                                     <?= getStatusBadge($goal['status']) ?>
                                 </div>

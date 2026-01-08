@@ -111,6 +111,7 @@ $quarterNames = [1 => '1분기 (1~3월)', 2 => '2분기 (4~6월)', 3 => '3분기
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($goal['title']) ?> - 신년계획 관리</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/theme.js"></script>
 </head>
 <body>
     <div class="container">
@@ -122,6 +123,9 @@ $quarterNames = [1 => '1분기 (1~3월)', 2 => '2분기 (4~6월)', 3 => '3분기
                     <a href="dashboard.php" class="nav-link">대시보드</a>
                     <a href="goal_list.php" class="nav-link">목표 관리</a>
                     <a href="reflection.php" class="nav-link">회고</a>
+                    <button id="themeToggle" class="theme-toggle" aria-label="테마 전환">
+                        <span class="icon">☀️</span>
+                    </button>
                     <span class="user-info">안녕하세요, <?= e($userName) ?>님</span>
                     <a href="logout.php" class="btn btn-sm btn-secondary">로그아웃</a>
                 </nav>
@@ -134,6 +138,9 @@ $quarterNames = [1 => '1분기 (1~3월)', 2 => '2분기 (4~6월)', 3 => '3분기
             <div class="goal-detail-header">
                 <div class="goal-detail-info">
                     <div class="goal-meta-row">
+                        <?php if (isset($goal['priority'])): ?>
+                            <?= getPriorityBadge($goal['priority']) ?>
+                        <?php endif; ?>
                         <span class="badge badge-category"><?= e(getCategoryName($goal['category'])) ?></span>
                         <?= getStatusBadge($goal['status']) ?>
                         <span class="goal-year"><?= $goal['year'] ?>년</span>
