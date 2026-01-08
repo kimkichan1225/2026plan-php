@@ -408,6 +408,17 @@ a:hover {
     color: white;
 }
 
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+}
+
+.btn-danger:hover {
+    background: #C0392B;
+    color: white;
+}
+
 .btn-sm {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
@@ -722,6 +733,12 @@ a:hover {
 .goal-date {
     color: var(--text-muted);
     font-size: 0.85rem;
+}
+
+.goal-actions-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
 }
 
 /* ============================================

@@ -32,11 +32,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
+// 목표 수정 처리
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update') {
+    $goalId = (int) ($_POST['goal_id'] ?? 0);
+    $title = trim($_POST['title'] ?? '');
+    $description = trim($_POST['description'] ?? '');
+    $category = $_POST['category'] ?? 'other';
+    $priority = $_POST['priority'] ?? 'medium';
+    $visibility = $_POST['visibility'] ?? 'private';
+
+    if (!$goalId) {
+        $error = '유효하지 않은 목표입니다.';
+    } elseif (empty($title)) {
+        $error = '목표 제목을 입력해주세요.';
+    } else {
+        // 권한 확인
+        $goal = $goalModel->findById($goalId);
+        if (!$goal || $goal['user_id'] !== $userId) {
+            $error = '권한이 없습니다.';
+        } else {
+            try {
+                $goalModel->update($goalId, [
+                    'title' => $title,
+                    'description' => $description,
+                    'category' => $category,
+                    'priority' => $priority,
+                    'visibility' => $visibility,
+                ]);
+                $success = '목표가 수정되었습니다.';
+                redirect("goal_list.php");
+            } catch (Exception $e) {
+                $error = '목표 수정 중 오류가 발생했습니다.';
+            }
+        }
+    }
+}
+
+// 목표 삭제 처리
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+    $goalId = (int) ($_POST['goal_id'] ?? 0);
+
+    if (!$goalId) {
+        $error = '유효하지 않은 목표입니다.';
+    } else {
+        // 권한 확인
+        $goal = $goalModel->findById($goalId);
+        if (!$goal || $goal['user_id'] !== $userId) {
+            $error = '권한이 없습니다.';
+        } else {
+            try {
+                $goalModel->delete($goalId);
+                $success = '목표가 삭제되었습니다.';
+            } catch (Exception $e) {
+                $error = '목표 삭제 중 오류가 발생했습니다.';
+            }
+        }
+    }
+}
+
 // 목표 목록 조회
 $goals = $goalModel->findByUser($userId, $currentYear);
 
-// 생성 폼 표시 여부
+// 생성/수정 폼 표시 여부
 $showCreateForm = isset($_GET['action']) && $_GET['action'] === 'create';
+$showEditForm = isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['id']);
+$editGoal = null;
+
+if ($showEditForm) {
+    $editGoalId = (int) $_GET['id'];
+    $editGoal = $goalModel->findById($editGoalId);
+
+    // 권한 확인
+    if (!$editGoal || $editGoal['user_id'] !== $userId) {
+        redirect('goal_list.php');
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="ko">
@@ -171,6 +241,90 @@ $showCreateForm = isset($_GET['action']) && $_GET['action'] === 'create';
                 </div>
             <?php endif; ?>
 
+            <!-- 목표 수정 폼 -->
+            <?php if ($showEditForm && $editGoal): ?>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>목표 수정하기</h3>
+                    </div>
+                    <div class="card-body">
+                        <?php if (isset($error)): ?>
+                            <div class="alert alert-error"><?= e($error) ?></div>
+                        <?php endif; ?>
+
+                        <form method="POST" action="goal_list.php" class="form">
+                            <input type="hidden" name="action" value="update">
+                            <input type="hidden" name="goal_id" value="<?= $editGoal['id'] ?>">
+
+                            <div class="form-group">
+                                <label for="edit_title">목표 제목 *</label>
+                                <input
+                                    type="text"
+                                    id="edit_title"
+                                    name="title"
+                                    required
+                                    placeholder="예: PHP 백엔드 마스터하기"
+                                    value="<?= e($editGoal['title']) ?>"
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="edit_description">목표 설명</label>
+                                <textarea
+                                    id="edit_description"
+                                    name="description"
+                                    rows="4"
+                                    placeholder="목표에 대한 상세 설명을 입력하세요"
+                                ><?= e($editGoal['description']) ?></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="edit_category">카테고리</label>
+                                    <select id="edit_category" name="category">
+                                        <option value="career" <?= $editGoal['category'] === 'career' ? 'selected' : '' ?>>커리어</option>
+                                        <option value="health" <?= $editGoal['category'] === 'health' ? 'selected' : '' ?>>건강</option>
+                                        <option value="study" <?= $editGoal['category'] === 'study' ? 'selected' : '' ?>>학습</option>
+                                        <option value="finance" <?= $editGoal['category'] === 'finance' ? 'selected' : '' ?>>재정</option>
+                                        <option value="hobby" <?= $editGoal['category'] === 'hobby' ? 'selected' : '' ?>>취미</option>
+                                        <option value="relationship" <?= $editGoal['category'] === 'relationship' ? 'selected' : '' ?>>관계</option>
+                                        <option value="other" <?= $editGoal['category'] === 'other' ? 'selected' : '' ?>>기타</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="edit_priority">우선순위</label>
+                                    <select id="edit_priority" name="priority">
+                                        <option value="high" <?= $editGoal['priority'] === 'high' ? 'selected' : '' ?>>🔥 높음</option>
+                                        <option value="medium" <?= $editGoal['priority'] === 'medium' ? 'selected' : '' ?>>➡️ 보통</option>
+                                        <option value="low" <?= $editGoal['priority'] === 'low' ? 'selected' : '' ?>>⬇️ 낮음</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>공개 설정</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="visibility" value="private" <?= $editGoal['visibility'] === 'private' ? 'checked' : '' ?>>
+                                        <span>🔒 비공개 (나만 보기)</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="visibility" value="public" <?= $editGoal['visibility'] === 'public' ? 'checked' : '' ?>>
+                                        <span>🌐 공개 (커뮤니티에 공유)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">수정 완료</button>
+                                <a href="goal_list.php" class="btn btn-secondary">취소</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <!-- 목표 목록 -->
             <div class="goals-container">
                 <?php if (empty($goals)): ?>
@@ -209,7 +363,15 @@ $showCreateForm = isset($_GET['action']) && $_GET['action'] === 'create';
                                 </div>
                                 <div class="goal-footer">
                                     <span class="goal-date"><?= formatDate($goal['created_at'], 'Y-m-d') ?></span>
-                                    <a href="goal_detail.php?id=<?= $goal['id'] ?>" class="btn btn-sm btn-primary">상세보기</a>
+                                    <div class="goal-actions-buttons">
+                                        <a href="goal_detail.php?id=<?= $goal['id'] ?>" class="btn btn-sm btn-primary">상세보기</a>
+                                        <a href="goal_list.php?action=edit&id=<?= $goal['id'] ?>" class="btn btn-sm btn-secondary">수정</a>
+                                        <form method="POST" action="goal_list.php" style="display: inline;" onsubmit="return confirm('정말 이 목표를 삭제하시겠습니까?');">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="goal_id" value="<?= $goal['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-danger">삭제</button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
