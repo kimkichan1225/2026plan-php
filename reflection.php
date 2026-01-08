@@ -69,6 +69,7 @@ $monthNames = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>회고 - 신년계획 관리</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/theme.js"></script>
 </head>
 <body>
     <div class="container">
@@ -79,7 +80,11 @@ $monthNames = [
                 <nav class="nav">
                     <a href="dashboard.php" class="nav-link">대시보드</a>
                     <a href="goal_list.php" class="nav-link">목표 관리</a>
+                    <a href="community.php" class="nav-link">커뮤니티</a>
                     <a href="reflection.php" class="nav-link active">회고</a>
+                    <button id="themeToggle" class="theme-toggle" aria-label="테마 전환">
+                        <span class="icon">☀️</span>
+                    </button>
                     <span class="user-info">안녕하세요, <?= e($userName) ?>님</span>
                     <a href="logout.php" class="btn btn-sm btn-secondary">로그아웃</a>
                 </nav>

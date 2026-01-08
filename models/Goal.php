@@ -17,15 +17,15 @@ class Goal
     /**
      * 목표 생성 (월별 계획 자동 생성 포함)
      */
-    public function create(int $userId, int $year, string $title, ?string $description, string $category, string $priority = 'medium'): int
+    public function create(int $userId, int $year, string $title, ?string $description, string $category, string $priority = 'medium', string $visibility = 'private'): int
     {
         try {
             $this->db->beginTransaction();
 
             // 목표 생성
             $stmt = $this->db->prepare(
-                'INSERT INTO goals (user_id, year, title, description, category, status, priority)
-                 VALUES (:user_id, :year, :title, :description, :category, :status, :priority)'
+                'INSERT INTO goals (user_id, year, title, description, category, status, priority, visibility)
+                 VALUES (:user_id, :year, :title, :description, :category, :status, :priority, :visibility)'
             );
 
             $stmt->execute([
@@ -36,6 +36,7 @@ class Goal
                 'category' => $category,
                 'status' => 'not_started',
                 'priority' => $priority,
+                'visibility' => $visibility,
             ]);
 
             $goalId = (int) $this->db->lastInsertId();
@@ -121,7 +122,7 @@ class Goal
         $fields = [];
         $params = ['id' => $goalId];
 
-        $allowedFields = ['title', 'description', 'category', 'status', 'priority'];
+        $allowedFields = ['title', 'description', 'category', 'status', 'priority', 'visibility'];
 
         foreach ($allowedFields as $field) {
             if (isset($data[$field])) {
@@ -256,5 +257,82 @@ class Goal
         $stmt->execute(['user_id' => $userId]);
 
         return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    }
+
+    /**
+     * 공개 목표 조회 (커뮤니티)
+     */
+    public function findPublicGoals(?string $category = null, ?string $orderBy = 'latest', int $limit = 20, int $offset = 0): array
+    {
+        $sql = 'SELECT g.*, u.name as user_name
+                FROM goals g
+                INNER JOIN users u ON g.user_id = u.id
+                WHERE g.visibility = "public"';
+
+        $params = [];
+
+        // 카테고리 필터
+        if ($category !== null) {
+            $sql .= ' AND g.category = :category';
+            $params['category'] = $category;
+        }
+
+        // 정렬
+        switch ($orderBy) {
+            case 'popular':
+                $sql .= ' ORDER BY g.likes DESC, g.views DESC';
+                break;
+            case 'views':
+                $sql .= ' ORDER BY g.views DESC';
+                break;
+            case 'progress':
+                $sql .= ' ORDER BY g.progress_percentage DESC';
+                break;
+            default: // latest
+                $sql .= ' ORDER BY g.created_at DESC';
+                break;
+        }
+
+        $sql .= ' LIMIT :limit OFFSET :offset';
+
+        $stmt = $this->db->prepare($sql);
+
+        foreach ($params as $key => $value) {
+            $stmt->bindValue(":$key", $value);
+        }
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * 공개 목표 수 조회
+     */
+    public function countPublicGoals(?string $category = null): int
+    {
+        $sql = 'SELECT COUNT(*) FROM goals WHERE visibility = "public"';
+        $params = [];
+
+        if ($category !== null) {
+            $sql .= ' AND category = :category';
+            $params['category'] = $category;
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * 조회수 증가
+     */
+    public function incrementViews(int $goalId): bool
+    {
+        $stmt = $this->db->prepare('UPDATE goals SET views = views + 1 WHERE id = :id');
+        return $stmt->execute(['id' => $goalId]);
     }
 }

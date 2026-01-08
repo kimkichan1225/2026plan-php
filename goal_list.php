@@ -17,13 +17,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $description = trim($_POST['description'] ?? '');
     $category = $_POST['category'] ?? 'other';
     $priority = $_POST['priority'] ?? 'medium';
+    $visibility = $_POST['visibility'] ?? 'private';
     $year = (int) ($_POST['year'] ?? $currentYear);
 
     if (empty($title)) {
         $error = '목표 제목을 입력해주세요.';
     } else {
         try {
-            $goalId = $goalModel->create($userId, $year, $title, $description, $category, $priority);
+            $goalId = $goalModel->create($userId, $year, $title, $description, $category, $priority, $visibility);
             redirect("goal_detail.php?id=$goalId");
         } catch (Exception $e) {
             $error = '목표 생성 중 오류가 발생했습니다.';
@@ -55,6 +56,7 @@ $showCreateForm = isset($_GET['action']) && $_GET['action'] === 'create';
                 <nav class="nav">
                     <a href="dashboard.php" class="nav-link">대시보드</a>
                     <a href="goal_list.php" class="nav-link active">목표 관리</a>
+                    <a href="community.php" class="nav-link">커뮤니티</a>
                     <a href="reflection.php" class="nav-link">회고</a>
                     <button id="themeToggle" class="theme-toggle" aria-label="테마 전환">
                         <span class="icon">☀️</span>
@@ -143,6 +145,20 @@ $showCreateForm = isset($_GET['action']) && $_GET['action'] === 'create';
                                         min="2020"
                                         max="2030"
                                     >
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>공개 설정</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="visibility" value="private" checked>
+                                        <span>🔒 비공개 (나만 보기)</span>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="visibility" value="public">
+                                        <span>🌐 공개 (커뮤니티에 공유)</span>
+                                    </label>
                                 </div>
                             </div>
 

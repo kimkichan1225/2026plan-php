@@ -315,6 +315,45 @@ a:hover {
     font-size: 0.85rem;
 }
 
+.radio-group {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    transition: all 0.2s;
+    flex: 1;
+}
+
+.radio-label:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.radio-label input[type="radio"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.radio-label input[type="radio"]:checked + span {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.radio-label span {
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1090,6 +1129,140 @@ a:hover {
 
 .chart-card-wide .chart-container {
     height: 400px;
+}
+
+/* ============================================
+   커뮤니티
+   ============================================ */
+.community-filters {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--card-shadow);
+}
+
+.filter-section {
+    margin-bottom: 1.5rem;
+}
+
+.filter-section:last-child {
+    margin-bottom: 0;
+}
+
+.filter-section label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text-color);
+}
+
+.filter-buttons,
+.sort-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.filter-btn,
+.sort-btn {
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.filter-btn:hover,
+.sort-btn:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.filter-btn.active,
+.sort-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.community-stats {
+    margin-bottom: 1.5rem;
+    color: var(--text-muted);
+}
+
+.community-stats strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.community-goal-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    padding: 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.community-goal-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-hover-shadow);
+}
+
+.goal-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.goal-author {
+    font-weight: 500;
+}
+
+.goal-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.pagination-btn {
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    min-width: 40px;
+    text-align: center;
+}
+
+.pagination-btn:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.pagination-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
 }
 
 /* ============================================
