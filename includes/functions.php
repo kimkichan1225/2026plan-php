@@ -137,6 +137,34 @@ function getStatusBadge(string $status): string
 }
 
 /**
+ * 우선순위 배지 HTML 생성
+ */
+function getPriorityBadge(string $priority): string
+{
+    $badges = [
+        'high' => '<span class="badge badge-priority-high">🔥 높음</span>',
+        'medium' => '<span class="badge badge-priority-medium">➡️ 보통</span>',
+        'low' => '<span class="badge badge-priority-low">⬇️ 낮음</span>',
+    ];
+
+    return $badges[$priority] ?? '';
+}
+
+/**
+ * 우선순위 이름 한글화
+ */
+function getPriorityName(string $priority): string
+{
+    $priorities = [
+        'high' => '높음',
+        'medium' => '보통',
+        'low' => '낮음',
+    ];
+
+    return $priorities[$priority] ?? $priority;
+}
+
+/**
  * 카테고리 이름 한글화
  */
 function getCategoryName(string $category): string

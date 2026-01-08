@@ -17,15 +17,15 @@ class Goal
     /**
      * 목표 생성 (월별 계획 자동 생성 포함)
      */
-    public function create(int $userId, int $year, string $title, ?string $description, string $category): int
+    public function create(int $userId, int $year, string $title, ?string $description, string $category, string $priority = 'medium'): int
     {
         try {
             $this->db->beginTransaction();
 
             // 목표 생성
             $stmt = $this->db->prepare(
-                'INSERT INTO goals (user_id, year, title, description, category, status)
-                 VALUES (:user_id, :year, :title, :description, :category, :status)'
+                'INSERT INTO goals (user_id, year, title, description, category, status, priority)
+                 VALUES (:user_id, :year, :title, :description, :category, :status, :priority)'
             );
 
             $stmt->execute([
@@ -35,6 +35,7 @@ class Goal
                 'description' => $description,
                 'category' => $category,
                 'status' => 'not_started',
+                'priority' => $priority,
             ]);
 
             $goalId = (int) $this->db->lastInsertId();
@@ -77,7 +78,7 @@ class Goal
     /**
      * 사용자의 모든 목표 조회
      */
-    public function findByUser(int $userId, ?int $year = null): array
+    public function findByUser(int $userId, ?int $year = null, ?string $orderBy = 'created_at'): array
     {
         $sql = 'SELECT * FROM goals WHERE user_id = :user_id';
         $params = ['user_id' => $userId];
@@ -87,7 +88,12 @@ class Goal
             $params['year'] = $year;
         }
 
-        $sql .= ' ORDER BY created_at DESC';
+        // 우선순위 정렬 지원
+        if ($orderBy === 'priority') {
+            $sql .= ' ORDER BY FIELD(priority, "high", "medium", "low"), created_at DESC';
+        } else {
+            $sql .= ' ORDER BY created_at DESC';
+        }
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
@@ -115,7 +121,7 @@ class Goal
         $fields = [];
         $params = ['id' => $goalId];
 
-        $allowedFields = ['title', 'description', 'category', 'status'];
+        $allowedFields = ['title', 'description', 'category', 'status', 'priority'];
 
         foreach ($allowedFields as $field) {
             if (isset($data[$field])) {

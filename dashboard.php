@@ -39,6 +39,7 @@ $avgProgress = $totalGoals > 0 ? round($totalProgress / $totalGoals, 2) : 0;
     <title>대시보드 - 신년계획 관리</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="assets/js/theme.js"></script>
 </head>
 <body>
     <div class="container">
@@ -50,6 +51,9 @@ $avgProgress = $totalGoals > 0 ? round($totalProgress / $totalGoals, 2) : 0;
                     <a href="dashboard.php" class="nav-link active">대시보드</a>
                     <a href="goal_list.php" class="nav-link">목표 관리</a>
                     <a href="reflection.php" class="nav-link">회고</a>
+                    <button id="themeToggle" class="theme-toggle" aria-label="테마 전환">
+                        <span class="icon">☀️</span>
+                    </button>
                     <span class="user-info">안녕하세요, <?= e($userName) ?>님</span>
                     <a href="logout.php" class="btn btn-sm btn-secondary">로그아웃</a>
                 </nav>
@@ -146,6 +150,9 @@ $avgProgress = $totalGoals > 0 ? round($totalProgress / $totalGoals, 2) : 0;
                                         </a>
                                     </h4>
                                     <div class="goal-meta">
+                                        <?php if (isset($goal['priority'])): ?>
+                                            <?= getPriorityBadge($goal['priority']) ?>
+                                        <?php endif; ?>
                                         <span class="badge badge-category"><?= e(getCategoryName($goal['category'])) ?></span>
                                         <?= getStatusBadge($goal['status']) ?>
                                     </div>
