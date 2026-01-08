@@ -95,9 +95,25 @@ if (!$goalId) {
 $goalModel = new Goal();
 $goal = $goalModel->findWithPlans($goalId);
 
-// 목표가 없거나 다른 사용자의 목표인 경우
-if (!$goal || $goal['user_id'] !== $userId) {
+// 목표가 없는 경우
+if (!$goal) {
     redirect('goal_list.php');
+}
+
+// 권한 확인
+$isOwner = $goal['user_id'] === $userId;
+$isPublic = $goal['visibility'] === 'public';
+
+// 비공개 목표는 소유자만 볼 수 있음
+if (!$isPublic && !$isOwner) {
+    redirect('community.php');
+}
+
+// 공개 목표를 다른 사람이 볼 때 조회수 증가
+if ($isPublic && !$isOwner) {
+    $goalModel->incrementViews($goalId);
+    // 조회수 증가 후 다시 조회하여 최신 데이터 반영
+    $goal = $goalModel->findWithPlans($goalId);
 }
 
 $planModel = new GoalPlan();
@@ -136,6 +152,13 @@ $quarterNames = [1 => '1분기 (1~3월)', 2 => '2분기 (4~6월)', 3 => '3분기
         <!-- 메인 컨텐츠 -->
         <main class="main-content">
             <!-- 목표 헤더 -->
+            <?php if (!$isOwner): ?>
+                <div class="public-goal-notice">
+                    <span>👤 <?= e($goal['user_name']) ?>님의 공개 목표</span>
+                    <span>👁️ 조회수 <?= number_format($goal['views']) ?></span>
+                </div>
+            <?php endif; ?>
+
             <div class="goal-detail-header">
                 <div class="goal-detail-info">
                     <div class="goal-meta-row">
@@ -145,6 +168,9 @@ $quarterNames = [1 => '1분기 (1~3월)', 2 => '2분기 (4~6월)', 3 => '3분기
                         <span class="badge badge-category"><?= e(getCategoryName($goal['category'])) ?></span>
                         <?= getStatusBadge($goal['status']) ?>
                         <span class="goal-year"><?= $goal['year'] ?>년</span>
+                        <?php if ($isPublic): ?>
+                            <span class="badge badge-public">🌐 공개</span>
+                        <?php endif; ?>
                     </div>
                     <h2><?= e($goal['title']) ?></h2>
                     <?php if ($goal['description']): ?>
@@ -178,14 +204,22 @@ $quarterNames = [1 => '1분기 (1~3월)', 2 => '2분기 (4~6월)', 3 => '3분기
                         <div class="plans-list">
                             <?php foreach ($quarterPlans as $plan): ?>
                                 <div class="plan-item <?= $plan['is_completed'] ? 'completed' : '' ?>" data-plan-id="<?= $plan['id'] ?>">
-                                    <div class="plan-checkbox">
-                                        <input
-                                            type="checkbox"
-                                            class="plan-toggle"
-                                            <?= $plan['is_completed'] ? 'checked' : '' ?>
-                                            data-plan-id="<?= $plan['id'] ?>"
-                                        >
-                                    </div>
+                                    <?php if ($isOwner): ?>
+                                        <div class="plan-checkbox">
+                                            <input
+                                                type="checkbox"
+                                                class="plan-toggle"
+                                                <?= $plan['is_completed'] ? 'checked' : '' ?>
+                                                data-plan-id="<?= $plan['id'] ?>"
+                                            >
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="plan-checkbox">
+                                            <span class="plan-status-icon">
+                                                <?= $plan['is_completed'] ? '✅' : '⬜' ?>
+                                            </span>
+                                        </div>
+                                    <?php endif; ?>
                                     <div class="plan-content">
                                         <div class="plan-header">
                                             <strong><?= $plan['month'] ?>월</strong>
@@ -201,12 +235,14 @@ $quarterNames = [1 => '1분기 (1~3월)', 2 => '2분기 (4~6월)', 3 => '3분기
                                         <?php if ($plan['plan_description']): ?>
                                             <p class="plan-description"><?= nl2br(e($plan['plan_description'])) ?></p>
                                         <?php endif; ?>
-                                        <button
-                                            class="btn-edit-plan"
-                                            data-plan-id="<?= $plan['id'] ?>"
-                                            data-plan-title="<?= e($plan['plan_title']) ?>"
-                                            data-plan-description="<?= e($plan['plan_description']) ?>"
-                                        >편집</button>
+                                        <?php if ($isOwner): ?>
+                                            <button
+                                                class="btn-edit-plan"
+                                                data-plan-id="<?= $plan['id'] ?>"
+                                                data-plan-title="<?= e($plan['plan_title']) ?>"
+                                                data-plan-description="<?= e($plan['plan_description']) ?>"
+                                            >편집</button>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -216,7 +252,11 @@ $quarterNames = [1 => '1분기 (1~3월)', 2 => '2분기 (4~6월)', 3 => '3분기
             </div>
 
             <div class="goal-actions">
-                <a href="goal_list.php" class="btn btn-secondary">목록으로</a>
+                <?php if ($isOwner): ?>
+                    <a href="goal_list.php" class="btn btn-secondary">목록으로</a>
+                <?php else: ?>
+                    <a href="community.php" class="btn btn-secondary">커뮤니티로</a>
+                <?php endif; ?>
             </div>
         </main>
     </div>

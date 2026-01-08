@@ -135,7 +135,9 @@ $categories = [
                             </div>
 
                             <h3 class="goal-title">
-                                <?= e($goal['title']) ?>
+                                <a href="goal_detail.php?id=<?= $goal['id'] ?>">
+                                    <?= e($goal['title']) ?>
+                                </a>
                             </h3>
 
                             <p class="goal-description">

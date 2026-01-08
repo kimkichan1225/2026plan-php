@@ -193,11 +193,20 @@ class Goal
     }
 
     /**
-     * 목표 계획과 함께 조회
+     * 목표 계획과 함께 조회 (사용자 정보 포함)
      */
     public function findWithPlans(int $goalId): ?array
     {
-        $goal = $this->findById($goalId);
+        // 목표와 사용자 정보 조회
+        $stmt = $this->db->prepare(
+            'SELECT g.*, u.name as user_name
+             FROM goals g
+             INNER JOIN users u ON g.user_id = u.id
+             WHERE g.id = :id
+             LIMIT 1'
+        );
+        $stmt->execute(['id' => $goalId]);
+        $goal = $stmt->fetch();
 
         if (!$goal) {
             return null;
