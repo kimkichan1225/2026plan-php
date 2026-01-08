@@ -970,6 +970,48 @@ a:hover {
 }
 
 /* ============================================
+   차트 스타일
+   ============================================ */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    padding: 1.5rem;
+    transition: box-shadow 0.3s;
+}
+
+.chart-card:hover {
+    box-shadow: var(--card-hover-shadow);
+}
+
+.chart-card h3 {
+    margin-bottom: 1.5rem;
+    color: var(--text-color);
+    font-size: 1.1rem;
+}
+
+.chart-card-wide {
+    grid-column: span 2;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+.chart-card-wide .chart-container {
+    height: 400px;
+}
+
+/* ============================================
    반응형
    ============================================ */
 @media (max-width: 768px) {
@@ -995,5 +1037,13 @@ a:hover {
 
     .form-row {
         grid-template-columns: 1fr;
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-card-wide {
+        grid-column: span 1;
     }
 }
