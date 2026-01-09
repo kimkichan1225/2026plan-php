@@ -79,3 +79,21 @@ function getCurrentUserName(): ?string
 {
     return $_SESSION['user_name'] ?? null;
 }
+
+/**
+ * 읽지 않은 알림 수 조회
+ */
+function getUnreadNotificationCount(): int
+{
+    if (!isLoggedIn()) {
+        return 0;
+    }
+
+    try {
+        require_once __DIR__ . '/../models/Notification.php';
+        $notificationModel = new Notification();
+        return $notificationModel->getUnreadCount(getCurrentUserId());
+    } catch (Exception $e) {
+        return 0;
+    }
+}

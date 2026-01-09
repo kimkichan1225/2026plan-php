@@ -10,6 +10,7 @@ requireLogin();
 
 $userId = getCurrentUserId();
 $userName = getCurrentUserName();
+$unreadNotifications = getUnreadNotificationCount();
 $goalId = (int) ($_GET['id'] ?? 0);
 
 // 계획 업데이트 처리 (AJAX) - 반드시 다른 출력 전에 처리
@@ -243,7 +244,12 @@ $quarterNames = [1 => '1분기 (1~3월)', 2 => '2분기 (4~6월)', 3 => '3분기
                     <a href="goal_list.php" class="nav-link">목표 관리</a>
                     <a href="community.php" class="nav-link">커뮤니티</a>
                     <a href="users.php" class="nav-link">사용자</a>
-                    <a href="notifications.php" class="nav-link">알림</a>
+                    <a href="notifications.php" class="nav-link">
+                        알림
+                        <?php if ($unreadNotifications > 0): ?>
+                            <span class="notification-badge"><?= $unreadNotifications ?></span>
+                        <?php endif; ?>
+                    </a>
                     <a href="profile.php" class="nav-link">프로필</a>
                     <button id="themeToggle" class="theme-toggle" aria-label="테마 전환">
                         <span class="icon">☀️</span>

@@ -8,6 +8,7 @@ requireLogin();
 
 $userId = getCurrentUserId();
 $userName = getCurrentUserName();
+$unreadNotifications = getUnreadNotificationCount();
 
 $userModel = new User();
 $followModel = new Follow();

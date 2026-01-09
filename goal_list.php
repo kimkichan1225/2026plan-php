@@ -8,6 +8,7 @@ requireLogin();
 $userId = getCurrentUserId();
 $userName = getCurrentUserName();
 $currentYear = date('Y');
+$unreadNotifications = getUnreadNotificationCount();
 
 $goalModel = new Goal();
 
@@ -128,7 +129,12 @@ if ($showEditForm) {
                     <a href="goal_list.php" class="nav-link active">목표 관리</a>
                     <a href="community.php" class="nav-link">커뮤니티</a>
                     <a href="users.php" class="nav-link">사용자</a>
-                    <a href="notifications.php" class="nav-link">알림</a>
+                    <a href="notifications.php" class="nav-link">
+                        알림
+                        <?php if ($unreadNotifications > 0): ?>
+                            <span class="notification-badge"><?= $unreadNotifications ?></span>
+                        <?php endif; ?>
+                    </a>
                     <a href="profile.php" class="nav-link">프로필</a>
                     <button id="themeToggle" class="theme-toggle" aria-label="테마 전환">
                         <span class="icon">☀️</span>
