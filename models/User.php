@@ -101,6 +101,16 @@ class User
             $params['email'] = $data['email'];
         }
 
+        if (isset($data['profile_picture'])) {
+            $fields[] = 'profile_picture = :profile_picture';
+            $params['profile_picture'] = $data['profile_picture'];
+        }
+
+        if (isset($data['password'])) {
+            $fields[] = 'password_hash = :password_hash';
+            $params['password_hash'] = $data['password'];
+        }
+
         if (empty($fields)) {
             return false;
         }
