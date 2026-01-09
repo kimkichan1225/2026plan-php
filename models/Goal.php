@@ -252,6 +252,26 @@ class Goal
     }
 
     /**
+     * 연도별 카테고리별 목표 수 집계
+     */
+    public function getCategoryStats(int $userId, int $year): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT category, COUNT(*) as count
+             FROM goals
+             WHERE user_id = :user_id AND year = :year
+             GROUP BY category'
+        );
+
+        $stmt->execute([
+            'user_id' => $userId,
+            'year' => $year
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    }
+
+    /**
      * 상태별 목표 수 집계
      */
     public function countByStatus(int $userId): array
