@@ -68,6 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $_SESSION['user_name'] = $name;
                 $success = '프로필이 수정되었습니다.';
                 $userName = $name;
+
+                // 업데이트된 사용자 정보 다시 조회
+                $user = $userModel->findById($userId);
             }
         } catch (Exception $e) {
             $error = '프로필 수정 중 오류가 발생했습니다.';
@@ -248,6 +251,12 @@ $editMode = isset($_GET['edit']) && $_GET['edit'] === 'true';
 
                                     <div class="form-group">
                                         <label for="profile_picture">프로필 사진</label>
+                                        <?php if (!empty($user['profile_picture'])): ?>
+                                            <div class="current-profile-picture">
+                                                <img src="uploads/profiles/<?= e($user['profile_picture']) ?>" alt="현재 프로필 사진">
+                                                <span>현재 프로필 사진</span>
+                                            </div>
+                                        <?php endif; ?>
                                         <input
                                             type="file"
                                             id="profile_picture"

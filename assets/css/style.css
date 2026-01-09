@@ -1670,6 +1670,29 @@ a:hover {
     font-size: 0.9rem;
 }
 
+.current-profile-picture {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+}
+
+.current-profile-picture img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
+.current-profile-picture span {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
 /* ============================================
    반응형
    ============================================ */
