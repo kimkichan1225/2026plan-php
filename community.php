@@ -14,13 +14,14 @@ $goalModel = new Goal();
 // 필터링 및 정렬 파라미터
 $category = $_GET['category'] ?? null;
 $orderBy = $_GET['order'] ?? 'latest';
+$search = trim($_GET['search'] ?? '');
 $page = max(1, (int) ($_GET['page'] ?? 1));
 $perPage = 12;
 $offset = ($page - 1) * $perPage;
 
 // 공개 목표 조회
-$goals = $goalModel->findPublicGoals($category, $orderBy, $perPage, $offset);
-$totalGoals = $goalModel->countPublicGoals($category);
+$goals = $goalModel->findPublicGoals($category, $orderBy, $perPage, $offset, $search);
+$totalGoals = $goalModel->countPublicGoals($category, $search);
 $totalPages = ceil($totalGoals / $perPage);
 
 // 카테고리 목록
@@ -79,17 +80,40 @@ $categories = [
                 </div>
             </div>
 
+            <!-- 검색 -->
+            <div class="search-section">
+                <form method="GET" action="community.php" class="search-form">
+                    <?php if ($category): ?>
+                        <input type="hidden" name="category" value="<?= e($category) ?>">
+                    <?php endif; ?>
+                    <?php if ($orderBy !== 'latest'): ?>
+                        <input type="hidden" name="order" value="<?= e($orderBy) ?>">
+                    <?php endif; ?>
+                    <input
+                        type="text"
+                        name="search"
+                        placeholder="목표 제목, 내용, 작성자 검색..."
+                        value="<?= e($search) ?>"
+                        class="search-input"
+                    >
+                    <button type="submit" class="btn btn-primary">검색</button>
+                    <?php if ($search): ?>
+                        <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=<?= e($orderBy) ?>" class="btn btn-secondary">초기화</a>
+                    <?php endif; ?>
+                </form>
+            </div>
+
             <!-- 필터 및 정렬 -->
             <div class="community-filters">
                 <div class="filter-section">
                     <label>카테고리:</label>
                     <div class="filter-buttons">
-                        <a href="community.php?order=<?= e($orderBy) ?>"
+                        <a href="community.php?order=<?= e($orderBy) ?><?= $search ? '&search=' . urlencode($search) : '' ?>"
                            class="filter-btn <?= $category === null ? 'active' : '' ?>">
                             전체
                         </a>
                         <?php foreach ($categories as $key => $label): ?>
-                            <a href="community.php?category=<?= $key ?>&order=<?= e($orderBy) ?>"
+                            <a href="community.php?category=<?= $key ?>&order=<?= e($orderBy) ?><?= $search ? '&search=' . urlencode($search) : '' ?>"
                                class="filter-btn <?= $category === $key ? 'active' : '' ?>">
                                 <?= e($label) ?>
                             </a>
@@ -100,19 +124,19 @@ $categories = [
                 <div class="filter-section">
                     <label>정렬:</label>
                     <div class="sort-buttons">
-                        <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=latest"
+                        <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=latest<?= $search ? '&search=' . urlencode($search) : '' ?>"
                            class="sort-btn <?= $orderBy === 'latest' ? 'active' : '' ?>">
                             최신순
                         </a>
-                        <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=popular"
+                        <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=popular<?= $search ? '&search=' . urlencode($search) : '' ?>"
                            class="sort-btn <?= $orderBy === 'popular' ? 'active' : '' ?>">
                             인기순
                         </a>
-                        <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=views"
+                        <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=views<?= $search ? '&search=' . urlencode($search) : '' ?>"
                            class="sort-btn <?= $orderBy === 'views' ? 'active' : '' ?>">
                             조회순
                         </a>
-                        <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=progress"
+                        <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=progress<?= $search ? '&search=' . urlencode($search) : '' ?>"
                            class="sort-btn <?= $orderBy === 'progress' ? 'active' : '' ?>">
                             진행률순
                         </a>
@@ -182,21 +206,21 @@ $categories = [
                 <?php if ($totalPages > 1): ?>
                     <div class="pagination">
                         <?php if ($page > 1): ?>
-                            <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=<?= e($orderBy) ?>&page=<?= $page - 1 ?>"
+                            <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=<?= e($orderBy) ?><?= $search ? '&search=' . urlencode($search) : '' ?>&page=<?= $page - 1 ?>"
                                class="pagination-btn">
                                 이전
                             </a>
                         <?php endif; ?>
 
                         <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
-                            <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=<?= e($orderBy) ?>&page=<?= $i ?>"
+                            <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=<?= e($orderBy) ?><?= $search ? '&search=' . urlencode($search) : '' ?>&page=<?= $i ?>"
                                class="pagination-btn <?= $i === $page ? 'active' : '' ?>">
                                 <?= $i ?>
                             </a>
                         <?php endfor; ?>
 
                         <?php if ($page < $totalPages): ?>
-                            <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=<?= e($orderBy) ?>&page=<?= $page + 1 ?>"
+                            <a href="community.php?<?= $category ? 'category=' . e($category) . '&' : '' ?>order=<?= e($orderBy) ?><?= $search ? '&search=' . urlencode($search) : '' ?>&page=<?= $page + 1 ?>"
                                class="pagination-btn">
                                 다음
                             </a>

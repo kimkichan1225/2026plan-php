@@ -291,7 +291,7 @@ class Goal
     /**
      * 공개 목표 조회 (커뮤니티)
      */
-    public function findPublicGoals(?string $category = null, ?string $orderBy = 'latest', int $limit = 20, int $offset = 0): array
+    public function findPublicGoals(?string $category = null, ?string $orderBy = 'latest', int $limit = 20, int $offset = 0, ?string $search = null): array
     {
         $sql = 'SELECT g.*, u.name as user_name
                 FROM goals g
@@ -304,6 +304,15 @@ class Goal
         if ($category !== null) {
             $sql .= ' AND g.category = :category';
             $params['category'] = $category;
+        }
+
+        // 검색 필터
+        if ($search !== null && $search !== '') {
+            $sql .= ' AND (g.title LIKE :search1 OR g.description LIKE :search2 OR u.name LIKE :search3)';
+            $searchTerm = "%{$search}%";
+            $params['search1'] = $searchTerm;
+            $params['search2'] = $searchTerm;
+            $params['search3'] = $searchTerm;
         }
 
         // 정렬
@@ -340,18 +349,38 @@ class Goal
     /**
      * 공개 목표 수 조회
      */
-    public function countPublicGoals(?string $category = null): int
+    public function countPublicGoals(?string $category = null, ?string $search = null): int
     {
-        $sql = 'SELECT COUNT(*) FROM goals WHERE visibility = "public"';
+        $sql = 'SELECT COUNT(*) FROM goals g';
         $params = [];
 
+        // 검색이 있을 경우 users 테이블 조인 필요
+        if ($search !== null && $search !== '') {
+            $sql .= ' INNER JOIN users u ON g.user_id = u.id';
+        }
+
+        $sql .= ' WHERE g.visibility = "public"';
+
         if ($category !== null) {
-            $sql .= ' AND category = :category';
+            $sql .= ' AND g.category = :category';
             $params['category'] = $category;
         }
 
+        if ($search !== null && $search !== '') {
+            $sql .= ' AND (g.title LIKE :search1 OR g.description LIKE :search2 OR u.name LIKE :search3)';
+            $searchTerm = "%{$search}%";
+            $params['search1'] = $searchTerm;
+            $params['search2'] = $searchTerm;
+            $params['search3'] = $searchTerm;
+        }
+
         $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
+
+        foreach ($params as $key => $value) {
+            $stmt->bindValue(":$key", $value);
+        }
+
+        $stmt->execute();
 
         return (int) $stmt->fetchColumn();
     }
