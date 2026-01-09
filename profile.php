@@ -207,6 +207,19 @@ $editMode = isset($_GET['edit']) && $_GET['edit'] === 'true';
                         </p>
                     </div>
 
+                    <!-- 팔로우 통계 -->
+                    <div class="profile-stats-card">
+                        <h4>👥 소셜</h4>
+                        <a href="followers.php" class="stat-item stat-item-link">
+                            <span class="stat-label">팔로워</span>
+                            <span class="stat-value"><?= $user['followers_count'] ?? 0 ?>명</span>
+                        </a>
+                        <a href="following.php" class="stat-item stat-item-link">
+                            <span class="stat-label">팔로잉</span>
+                            <span class="stat-value"><?= $user['following_count'] ?? 0 ?>명</span>
+                        </a>
+                    </div>
+
                     <!-- 통계 요약 -->
                     <div class="profile-stats-card">
                         <h4>📊 활동 통계</h4>

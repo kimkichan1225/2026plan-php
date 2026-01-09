@@ -1574,6 +1574,23 @@ a:hover {
     font-size: 1.1rem;
 }
 
+.stat-item-link {
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin: 0 -0.75rem;
+}
+
+.stat-item-link:hover {
+    background: rgba(74, 144, 226, 0.1);
+}
+
+.stat-item-link .stat-value {
+    color: var(--primary-color);
+}
+
 .profile-main {
     display: flex;
     flex-direction: column;
