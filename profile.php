@@ -22,10 +22,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $error = '이름을 입력해주세요.';
     } else {
         try {
-            $userModel->update($userId, ['name' => $name]);
-            $_SESSION['user_name'] = $name;
-            $success = '프로필이 수정되었습니다.';
-            $userName = $name;
+            $updateData = ['name' => $name];
+
+            // 프로필 사진 업로드 처리
+            if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
+                $file = $_FILES['profile_picture'];
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                $maxSize = 2 * 1024 * 1024; // 2MB
+
+                // 파일 유효성 검사
+                if (!in_array($file['type'], $allowedTypes)) {
+                    $error = '이미지 파일만 업로드 가능합니다 (JPG, PNG, GIF).';
+                } elseif ($file['size'] > $maxSize) {
+                    $error = '파일 크기는 2MB 이하여야 합니다.';
+                } else {
+                    // 파일 저장
+                    $uploadsDir = __DIR__ . '/uploads/profiles';
+                    if (!is_dir($uploadsDir)) {
+                        mkdir($uploadsDir, 0755, true);
+                    }
+
+                    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+                    $filename = 'profile_' . $userId . '_' . time() . '.' . $extension;
+                    $destination = $uploadsDir . '/' . $filename;
+
+                    if (move_uploaded_file($file['tmp_name'], $destination)) {
+                        // 이전 프로필 사진 삭제
+                        $oldUser = $userModel->findById($userId);
+                        if ($oldUser['profile_picture']) {
+                            $oldFile = $uploadsDir . '/' . $oldUser['profile_picture'];
+                            if (file_exists($oldFile)) {
+                                unlink($oldFile);
+                            }
+                        }
+
+                        $updateData['profile_picture'] = $filename;
+                    } else {
+                        $error = '파일 업로드 중 오류가 발생했습니다.';
+                    }
+                }
+            }
+
+            if (!isset($error)) {
+                $userModel->update($userId, $updateData);
+                $_SESSION['user_name'] = $name;
+                $success = '프로필이 수정되었습니다.';
+                $userName = $name;
+            }
         } catch (Exception $e) {
             $error = '프로필 수정 중 오류가 발생했습니다.';
         }
@@ -141,7 +184,11 @@ $editMode = isset($_GET['edit']) && $_GET['edit'] === 'true';
                 <div class="profile-sidebar">
                     <div class="profile-card">
                         <div class="profile-avatar">
-                            <?= strtoupper(mb_substr($userName, 0, 1)) ?>
+                            <?php if (!empty($user['profile_picture'])): ?>
+                                <img src="uploads/profiles/<?= e($user['profile_picture']) ?>" alt="프로필 사진">
+                            <?php else: ?>
+                                <?= strtoupper(mb_substr($userName, 0, 1)) ?>
+                            <?php endif; ?>
                         </div>
                         <h3 class="profile-name"><?= e($userName) ?></h3>
                         <p class="profile-email"><?= e($user['email']) ?></p>
@@ -185,7 +232,7 @@ $editMode = isset($_GET['edit']) && $_GET['edit'] === 'true';
                                 <h3>프로필 정보 수정</h3>
                             </div>
                             <div class="card-body">
-                                <form method="POST" action="profile.php" class="form">
+                                <form method="POST" action="profile.php" class="form" enctype="multipart/form-data">
                                     <input type="hidden" name="action" value="update_profile">
 
                                     <div class="form-group">
@@ -197,6 +244,17 @@ $editMode = isset($_GET['edit']) && $_GET['edit'] === 'true';
                                             required
                                             value="<?= e($userName) ?>"
                                         >
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="profile_picture">프로필 사진</label>
+                                        <input
+                                            type="file"
+                                            id="profile_picture"
+                                            name="profile_picture"
+                                            accept="image/jpeg,image/png,image/gif"
+                                        >
+                                        <small>JPG, PNG, GIF 형식 (최대 2MB)</small>
                                     </div>
 
                                     <div class="form-group">

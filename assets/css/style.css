@@ -1506,6 +1506,13 @@ a:hover {
     margin: 0 auto 1rem;
 }
 
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
 .profile-name {
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
