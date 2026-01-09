@@ -1469,6 +1469,201 @@ a:hover {
 }
 
 /* ============================================
+   프로필 페이지
+   ============================================ */
+.profile-container {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.profile-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.profile-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
+    text-align: center;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+    color: white;
+    font-size: 2.5rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.profile-name {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.profile-email {
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.profile-joined {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.profile-stats-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+}
+
+.profile-stats-card h4 {
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.profile-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.category-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.category-stat-item {
+    background: var(--bg-color);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 2px solid var(--border-color);
+    transition: all 0.2s;
+}
+
+.category-stat-item:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.category-name {
+    display: block;
+    color: var(--text-color);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.category-count {
+    display: block;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.recent-comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.recent-comment-item {
+    background: var(--bg-color);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.comment-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.comment-meta strong {
+    color: var(--text-color);
+}
+
+.comment-text {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.goal-status-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.status-bar {
+    height: 30px;
+    border-radius: 15px;
+    transition: width 0.3s ease;
+}
+
+.status-completed {
+    background: var(--success-color);
+}
+
+.status-in-progress {
+    background: var(--warning-color);
+}
+
+.status-not-started {
+    background: var(--secondary-color);
+}
+
+.status-label {
+    min-width: 120px;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+/* ============================================
    반응형
    ============================================ */
 @media (max-width: 768px) {
@@ -1485,6 +1680,10 @@ a:hover {
     .stats-grid,
     .goal-grid,
     .quarters-container {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-container {
         grid-template-columns: 1fr;
     }
 

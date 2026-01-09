@@ -52,6 +52,7 @@ $avgProgress = $totalGoals > 0 ? round($totalProgress / $totalGoals, 2) : 0;
                     <a href="goal_list.php" class="nav-link">목표 관리</a>
                     <a href="community.php" class="nav-link">커뮤니티</a>
                     <a href="reflection.php" class="nav-link">회고</a>
+                    <a href="profile.php" class="nav-link">프로필</a>
                     <button id="themeToggle" class="theme-toggle" aria-label="테마 전환">
                         <span class="icon">☀️</span>
                     </button>
