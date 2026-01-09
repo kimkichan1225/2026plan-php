@@ -120,4 +120,50 @@ class User
 
         return $stmt->execute($params);
     }
+
+    /**
+     * 사용자 검색 (이름 또는 이메일)
+     */
+    public function search(string $keyword, int $limit = 20, int $offset = 0): array
+    {
+        $keyword = "%{$keyword}%";
+
+        $stmt = $this->db->prepare(
+            'SELECT id, name, email, profile_picture, followers_count, following_count, created_at
+             FROM users
+             WHERE name LIKE :keyword OR email LIKE :keyword
+             ORDER BY followers_count DESC, name ASC
+             LIMIT :limit OFFSET :offset'
+        );
+
+        $stmt->bindValue(':keyword', $keyword);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * 활동적인 사용자 목록 (공개 목표가 많은 순)
+     */
+    public function getActiveUsers(int $limit = 20): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT u.id, u.name, u.profile_picture, u.followers_count, u.following_count,
+                    COUNT(DISTINCT g.id) as public_goals_count
+             FROM users u
+             LEFT JOIN goals g ON u.id = g.user_id AND g.visibility = "public"
+             GROUP BY u.id
+             HAVING public_goals_count > 0
+             ORDER BY public_goals_count DESC, u.followers_count DESC
+             LIMIT :limit'
+        );
+
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
 }
