@@ -131,12 +131,13 @@ class User
         $stmt = $this->db->prepare(
             'SELECT id, name, email, profile_picture, followers_count, following_count, created_at
              FROM users
-             WHERE name LIKE :keyword OR email LIKE :keyword
+             WHERE name LIKE :keyword1 OR email LIKE :keyword2
              ORDER BY followers_count DESC, name ASC
              LIMIT :limit OFFSET :offset'
         );
 
-        $stmt->bindValue(':keyword', $keyword);
+        $stmt->bindValue(':keyword1', $keyword);
+        $stmt->bindValue(':keyword2', $keyword);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 
